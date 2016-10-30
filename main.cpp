@@ -8,95 +8,75 @@
 
 using namespace std;
 
-const int NUM_SENSORS = 10;
+const int NUM_ROUTERS = 10;
 const int NUM_ITERATIONS = 100;
-const int WEIGHT_DESIGN = 2;
 
-void calcAvgVector( vector<Sensor>& data );
-bool isConnected( vector<Sensor>& data );
-void outputToFile( vector<Sensor>& data );
+void calcAvgVector( vector<Router>& data );
+bool isConnected( vector<Router>& data );
+void outputToFile( vector<Router>& data );
 
 int main()
    {
     // Initialization
-    int index, index2, sensorIndex;
-    vector<Sensor> sensors( NUM_SENSORS );
+    int index, index2, routerIndex;
+    vector<Router> network( NUM_ROUTERS );
 
        // Loop until a connected graph is generated
        do
           {
-           // Loop through all sensors to generate positions
-           for( index = 0; index < NUM_SENSORS; index++ )
+           // Loop through all routers to generate positions
+           for( index = 0; index < NUM_ROUTERS; index++ )
               {             
-               // Generate position of current sensor
-               sensors[ index ].placeSensor( index );
+               // Generate position of current router
+               network[ index ].placeRouter( index );
               }
            // end loop
            
-           // Loop through all sensors to check neighbors
-           for( index = 0; index < NUM_SENSORS; index++ )
+           // Loop through all routers to check neighbors
+           for( index = 0; index < NUM_ROUTERS; index++ )
               {
                // clear neighbors
-               sensors[ index ].neighbors.clear();
+               network[ index ].neighbors.clear();
                
-               // Calculate neighbors of cuurent sensor
-               sensors[ index ].calcNeighbors( index, sensors );
+               // Calculate neighbors of cuurent router
+               network[ index ].calcNeighbors( index, network );
               }
            // end loop
           }
-       while( !isConnected( sensors ) );
+       while( !isConnected( network ) );
        // end loop
        
        // calculate average vector
-       calcAvgVector( sensors );
-       
-       // Calculate variance, measurements, and initialize weights 
-       for( index = 0; index < sensors.size(); index++ )
-          {
-           sensors[ index ].calcVariance();           
-           sensors[ index ].calcMeasurement();
-           sensors[ index ].initializeWeights( index, sensors, WEIGHT_DESIGN );
-          }
+       calcAvgVector( network );
           
-    // Loop specified number of times for consensus filter
+    // Loop specified number of times for simulation
     for( index = 0; index < NUM_ITERATIONS; index++ )
        {
-        // Recalculate weights for all sensors
-        for( index2 = 0; index2 < sensors.size(); index2++ )
+        // Loop through all routers
+        for( routerIndex = 0; routerIndex < network.size(); routerIndex++ )
            {
-            sensors[ index2 ].calcWeights( index2, sensors, WEIGHT_DESIGN );
-           }
-  
-        // Loop through all sensors
-        for( sensorIndex = 0; sensorIndex < sensors.size(); sensorIndex++ )
-           {
-            // Record current measurement
-            sensors[ sensorIndex ].measurements.push_back(
-                                            sensors[ sensorIndex ].estimation);
-                                                 
-            // Update measurement
-            sensors[ sensorIndex ].calcNextMeasurement( sensorIndex, sensors );
+
            }
         // end inner loop
        }
     // end outer loop
     
-// TESTING: Output all sensor information 
-for( index = 0; index < sensors.size(); index++ )
+// TESTING: Output all router information 
+for( index = 0; index < network.size(); index++ )
    {
-    cout << sensors[ index ] << endl;
+    cout << network[ index ] << endl;
    }
-// TESTING: Output all sensor information 
+// TESTING: Output all router information 
 
     // Output measurements
-    outputToFile( sensors );
+    outputToFile( network );
 
     // Exit program
     return 0;
    }
    
 
-void calcAvgVector( vector<Sensor>& data )
+void calcAvgVector( vector<Router>& data )
    {
     // initialize function/variables
     int index;
@@ -114,7 +94,7 @@ void calcAvgVector( vector<Sensor>& data )
           }
           
        
-    // Set average for all sensors, also set sensor num
+    // Set average for all routers, also set router num
     for( index = 0; index < data.size(); index++ )
        {
         data[ index ].avgXpos = sumX / (double) data.size();
@@ -122,17 +102,17 @@ void calcAvgVector( vector<Sensor>& data )
        }
    }
    
-bool isConnected( vector<Sensor>& data )
+bool isConnected( vector<Router>& data )
    {
     // Initialize function/variables
-    stack<Sensor> vertices;
-    Sensor vertex;
-    bool nodesVisited[ NUM_SENSORS ];
+    stack<Router> vertices;
+    Router vertex;
+    bool nodesVisited[ NUM_ROUTERS ];
     int index;
     bool isConnected = true;
     
         // initialize nodes visited array
-        for( index = 0; index < NUM_SENSORS; index++ )
+        for( index = 0; index < NUM_ROUTERS; index++ )
            {
             nodesVisited[ index ] = false;
            }
@@ -150,10 +130,10 @@ bool isConnected( vector<Sensor>& data )
            vertices.pop();
            
            // check if vertex was not visited
-           if( !( nodesVisited[ vertex.sensorNum ] ) )
+           if( !( nodesVisited[ vertex.routerNum ] ) )
               {
                // label vertex as discovered
-               nodesVisited[ vertex.sensorNum ] = true;
+               nodesVisited[ vertex.routerNum ] = true;
                
                // Loop through all neighbors 
                for( index = 0; index < vertex.neighbors.size(); index++ )
@@ -173,7 +153,7 @@ bool isConnected( vector<Sensor>& data )
     // Check if all nodes were visited
 
        // loop through nodes visited array
-       for( index = 0; index < NUM_SENSORS; index++ )
+       for( index = 0; index < NUM_ROUTERS; index++ )
           {
            // Check if node was not visited
            if( nodesVisited[ index ] == false )
@@ -188,7 +168,7 @@ bool isConnected( vector<Sensor>& data )
     return isConnected;
    }
 
-void outputToFile( vector<Sensor>& data )
+void outputToFile( vector<Router>& data )
 	{
 	// Initialize variables
 	int index, index2 = 0, index3;
@@ -200,14 +180,7 @@ void outputToFile( vector<Sensor>& data )
 	// Begin loading file with measurement data
 	for( index = 0; index < data.size(); index++ )
 		{
-		// Prime the loop to avoid extra comma at the end
-		fout << data[ index ].measurements[ index2 ];
-		for( index3 = 1; index3 < NUM_ITERATIONS; index3++ )
-			{
-			fout  << ", " << data[ index ].measurements[ index3 ];
-			}
-
-		fout << endl;
+		
 		}
 	fout.close();
 	}
