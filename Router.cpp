@@ -15,6 +15,9 @@ Router::Router()
     avgXpos = 0;
     avgYpos = 0;
     routerNum = -1;
+    
+    // TODO: Statically retrieve router address
+    
    }
    
 Router::Router( const Router& RHS )
@@ -161,9 +164,33 @@ double Router::calcDistance( double x1, double y1, double x2, double y2 )
     return dist;
    }
    
+void Router::stepSimulation()
+   {
+    if( !buffer.empty() )
+       {
+        processNextPacket();
+       }
+   }
    
+void Router::setNetwork( vector<Router>* n )
+   {
+    network = n;
+   }
+
+void processNextPacket()
+   {
    
+   }
    
+void sendPacket( Packet data, string destAddress )
+   {
+   
+   }
+
+void getPacket( Packet data )
+  {
+   
+  }   
    
    
    

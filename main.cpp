@@ -39,7 +39,10 @@ int main()
                network[ index ].neighbors.clear();
                
                // Calculate neighbors of cuurent router
-               network[ index ].calcNeighbors( index, network );
+               network[ index ].calcNeighbors( index, network );        
+               
+               // Give each router a pointer to the overall network      
+               network[ index ].setNetwork( &network );
               }
            // end loop
           }
@@ -55,7 +58,7 @@ int main()
         // Loop through all routers
         for( routerIndex = 0; routerIndex < network.size(); routerIndex++ )
            {
-
+            network[ index ].stepSimulation();
            }
         // end inner loop
        }
