@@ -207,7 +207,7 @@ void Router::processNextPacket()
             // Generate route reply
             data.type = PTYPE_REPLY;
             swap( data.srcAddress, data.destAddress );
-            // TODO: reverse route?
+            reverse( data.Route.begin(), data.Route.end() );
             
             // Send route reply
 
@@ -217,12 +217,12 @@ void Router::processNextPacket()
     if( data.type == PTYPE_REQUEST )
        {        
         // Add router's address to route
-        data.route.push_back( address );
+        data.Route.push_back( address );
         
         // Send to all neighbors
         broadcastPacket( data );
        }    
-    // Otherwise, assume packet was route reply or data
+    // Otherwise, assume packet was returning route reply or data
     else
        {
         // Send to next router in route
@@ -232,7 +232,24 @@ void Router::processNextPacket()
    
 void Router::processRoutes( Packet data )
    {
-   
+    // initialize function/variables
+    int index = 0;
+    
+    // Get route from packet
+    vector<string> route = data.Route;
+    
+    // Add self to the end of route
+    route.push_back( address );
+    
+    // Reverse route
+    reverse( route.begin(), route.end() );
+    
+    // Loop through all valid sub-routes
+    while( route.size() > 1 )
+       {
+        routes.insert( route );
+        route.pop_back(); //TODO: check if this loop works
+       }
    }
    
 void Router::sendPacket( Packet data, string destAddress )

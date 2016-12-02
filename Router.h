@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <queue>
+#include <set>
 
 using namespace std;
 
@@ -85,6 +86,7 @@ class Router
        vector<bool> neighbors;
        vector<int> seenPackets;
        queue<Packet> buffer;
+       set<vector<string>> routes;
        
     private:
        void processNextPacket();
@@ -94,7 +96,6 @@ class Router
        void broadcastPacket( Packet data );
        vector<Router> network;
        addressGenerator ipGen;
-    
    };
 
 #endif
