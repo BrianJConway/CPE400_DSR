@@ -6,6 +6,15 @@
 
 using namespace std;
 
+string addresGenerator::getNextAddress()
+   {
+    string result = "192.168." + to_string( count ) + ".0";
+    
+    count++;
+    
+    return result; 
+   }
+
 Router::Router()
    {
     // Initialize data members
@@ -16,7 +25,7 @@ Router::Router()
     avgYpos = 0;
     routerNum = -1;
     
-    // TODO: Statically retrieve router address
+    address = ipGen.getNextAddress();
     
    }
    
@@ -179,7 +188,36 @@ void Router::setNetwork( vector<Router>* n )
 
 void processNextPacket()
    {
-   
+    // initialize function/variables
+    Packet data = buffer.front();
+    buffer.pop();
+    
+    // Check if not discarding the packet
+    if( find( seenPackets.begin(), seenPackets.end(), data.packetID ) != seenPackets.end() )
+       {
+        // Add to seen packets
+        seenPackets.push_back( data.packetID );
+        
+        // Process routes from packet
+        
+        // Check if we are destination
+        
+            // Check if packet was route request
+            
+                // Generate route reply
+                
+                // Send route reply
+        
+        // Otherwise, check if route request
+        
+            // Add router's address to route
+            
+            // Send to all neighbors
+            
+        // Otherwise, assume packet was route reply
+          
+            // Send to next router in route 
+       }
    }
    
 void sendPacket( Packet data, string destAddress )

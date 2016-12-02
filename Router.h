@@ -24,11 +24,33 @@ const double COMMUNICATION_RANGE = 3.50;
 
 struct Packet
    {
+    int packetID;
     packetType type;
     string srcAddress;
     string destAddress;
     
     vector<string> Route;
+   };
+  
+class addressGenerator
+   {
+    public:
+       string getNextAddress();
+    private:
+       static int count = 0;
+   };
+
+class packetIDGenerator
+   {
+    public:
+       int getNextID()
+          {
+           count++;
+           return count;
+          }
+          
+    private:
+       static int count = 0;
    };
 
 class Router
@@ -61,6 +83,7 @@ class Router
        string address;
        
        vector<bool> neighbors;
+       vector<int> seenPackets;
        queue<Packet> buffer;
        
     private:
@@ -69,6 +92,7 @@ class Router
        void getPacket( Packet data );      
        
        vector<Router> network;
+       addressGenerator ipGen;
     
    };
 
