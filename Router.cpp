@@ -222,10 +222,11 @@ void Router::processPacket( Packet data )
             // Generate route reply
             data.type = PTYPE_REPLY;
             swap( data.srcAddress, data.destAddress );
-            reverse( data.Route.begin(), data.Route.end() );
+            reverse( data.route.path.begin(), data.route.path.end() );
             
-            // Send route reply
-
+            // Send route reply to next router in route
+            vector<string>::iterator it = find( data.route.path.begin(), data.route.path.end(), address );
+            sendPacket( data, *( next( it ) ) );
            }
         // Otherwise, assume packet was returning route reply
         else
@@ -237,7 +238,7 @@ void Router::processPacket( Packet data )
     else if( data.type == PTYPE_REQUEST )
        {        
         // Add router's address to route
-        data.Route.push_back( address );
+        data.route.path.push_back( address );
         
         // Send to all neighbors
         broadcastPacket( data );
@@ -246,7 +247,8 @@ void Router::processPacket( Packet data )
     else
        {
         // Send to next router in route
-        
+        vector<string>::iterator it = find( data.route.path.begin(), data.route.path.end(), address );
+        sendPacket( data, *( next( it ) ) );
        }
    }
    
@@ -256,19 +258,24 @@ void Router::processRoutes( Packet data )
     int index = 0;
     
     // Get route from packet
-    vector<string> route = data.Route;
+    Route route = data.route;
     
     // Add self to the end of route
-    route.push_back( address );
+    route.path.push_back( address );
+    route.length++;
     
     // Reverse route
-    reverse( route.begin(), route.end() );
+    reverse( route.path.begin(), route.path.end() );
     
     // Loop through all valid sub-routes
-    while( route.size() > 1 )
+    while( route.path.size() > 1 )
        {
+        // Add current route to set 
         routes.insert( route );
-        route.pop_back();
+        
+        // Get next sub-route
+        route.path.pop_back();
+        route.length--;
        }
    }
    
@@ -322,10 +329,10 @@ bool Router::hasRoute( string address )
     string currentDest;
     
     // Loop through known routes
-    for( iterator it = routes.begin(); it != routes.end(); it++ )
+    for( set<Route>::iterator it = routes.begin(); it != routes.end(); it++ )
        {
-        // Get last address in route
-        currentDest = it->back();
+        // Get last address in current route's path
+        currentDest = it->path.back();
         
         // Check if route ends with destination address
         if( currentDest == address )

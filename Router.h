@@ -23,6 +23,18 @@ const double MAX_YPOS = 10.0;
 
 const double COMMUNICATION_RANGE = 3.50;
 
+struct Route
+   {
+    int length;
+    vector<string> path;
+    
+    // Used for sorting routes by length
+    bool operator<(Route other) const
+       {
+        return length < other.length;
+       }  
+   };
+
 struct Packet
    {
     int packetID;
@@ -30,11 +42,10 @@ struct Packet
     string srcAddress;
     string destAddress;
     
-    vector<string> Route;
+    Route route;
 
     Packet(int p, packetType t, string s, string d): packetID(p), type(t), srcAddress(s), destAddress(d) {}
    };
-  
 
 class addressGenerator
    {
@@ -90,7 +101,7 @@ class Router
        vector<int> seenPackets;
        vector<Packet> waitingPackets;
        queue<Packet> buffer;
-       set<vector<string>> routes;
+       set<Route> routes;
        
     private:
        void processPacket( Packet data );
