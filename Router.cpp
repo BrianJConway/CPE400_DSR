@@ -176,11 +176,28 @@ double Router::calcDistance( double x1, double y1, double x2, double y2 )
    }
    
 void Router::stepSimulation()
-   {
+   {          
     if( !buffer.empty() )
        {
-        processNextPacket();
-       }
+        // Process next packet in buffer
+        Packet data = buffer.front();
+        buffer.pop();
+        
+        // Check if data packet without a route to destination
+        if( data.type == PTYPE_DATA && !( hasRoute( packet.destAddress ) ) )
+           {
+            // Store in waiting packet buffer
+            waitingPackes.push_back( data );
+            
+            // Add route request to the destination router
+            Packet request( pidGen->getNextID(), PTYPE_REQUEST, address, data.destAddress );
+            processPacket( request );
+           }
+        else
+           {           
+            processPacket( data );
+           }
+       } 
    }
    
 void Router::setNetwork( vector<Router>* n )
@@ -188,12 +205,10 @@ void Router::setNetwork( vector<Router>* n )
     network = n;
    }
 
-void Router::processNextPacket()
+void Router::processPacket( Packet data )
    {
     // initialize function/variables
     int index;
-    Packet data = buffer.front();
-    buffer.pop();
         
     // Process routes from packet
     processRoutes( data );
@@ -212,9 +227,14 @@ void Router::processNextPacket()
             // Send route reply
 
            }
+        // Otherwise, assume packet was returning route reply
+        else
+           {
+            
+           }
        }
     // Otherwise, check if route request
-    if( data.type == PTYPE_REQUEST )
+    else if( data.type == PTYPE_REQUEST )
        {        
         // Add router's address to route
         data.Route.push_back( address );
@@ -226,7 +246,7 @@ void Router::processNextPacket()
     else
        {
         // Send to next router in route
-         
+        
        }
    }
    
@@ -248,7 +268,7 @@ void Router::processRoutes( Packet data )
     while( route.size() > 1 )
        {
         routes.insert( route );
-        route.pop_back(); //TODO: check if this loop works
+        route.pop_back();
        }
    }
    
@@ -293,7 +313,31 @@ void Router::getPacket( Packet data )
         seenPackets.push_back( data.packetID );
        }
   }   
-   
+
+bool Router::hasRoute( string address )
+   {
+    // initialize function/variables
+    int index;
+    bool result = false;
+    string currentDest;
+    
+    // Loop through known routes
+    for( iterator it = routes.begin(); it != routes.end(); it++ )
+       {
+        // Get last address in route
+        currentDest = it->back();
+        
+        // Check if route ends with destination address
+        if( currentDest == address )
+           {
+            result = true;
+           }
+       }
+    //end loop
+    
+    return result;
+   }   
+
 void swap( string& one, string& other )
    {
     string temp = one;

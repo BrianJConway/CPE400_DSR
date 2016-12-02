@@ -31,8 +31,11 @@ struct Packet
     string destAddress;
     
     vector<string> Route;
+
+    Packet(int p, packetType t, string s, string d): packetID(p), type(t), srcAddress(s), destAddress(d) {}
    };
   
+
 class addressGenerator
    {
     public:
@@ -85,17 +88,21 @@ class Router
        
        vector<bool> neighbors;
        vector<int> seenPackets;
+       vector<Packet> waitingPackets;
        queue<Packet> buffer;
        set<vector<string>> routes;
        
     private:
-       void processNextPacket();
+       void processPacket( Packet data );
        void sendPacket( Packet data, string destAddress );
        void getPacket( Packet data );      
        void processRoutes( Packet data );
        void broadcastPacket( Packet data );
+       bool hasRoute( string address );
+       
        vector<Router> network;
        addressGenerator ipGen;
+       packetIDGenerator pidGen;
    };
 
 #endif
