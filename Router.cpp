@@ -6,6 +6,8 @@
 
 using namespace std;
 
+void swap( string& one, string& other );
+
 string addresGenerator::getNextAddress()
    {
     string result = "192.168." + to_string( count ) + ".0";
@@ -186,50 +188,101 @@ void Router::setNetwork( vector<Router>* n )
     network = n;
    }
 
-void processNextPacket()
+void Router::processNextPacket()
    {
     // initialize function/variables
+    int index;
     Packet data = buffer.front();
     buffer.pop();
+        
+    // Process routes from packet
+    processRoutes( data );
     
-    // Check if not discarding the packet
-    if( find( seenPackets.begin(), seenPackets.end(), data.packetID ) != seenPackets.end() )
+    // Check if we are destination
+    if( packet.destAddress == address )
        {
-        // Add to seen packets
-        seenPackets.push_back( data.packetID );
-        
-        // Process routes from packet
-        
-        // Check if we are destination
-        
-            // Check if packet was route request
+        // Check if packet was route request
+        if( data.type == PTYPE_REQUEST )
+           {
+            // Generate route reply
+            data.type = PTYPE_REPLY;
+            swap( data.srcAddress, data.destAddress );
+            // TODO: reverse route?
             
-                // Generate route reply
-                
-                // Send route reply
+            // Send route reply
+
+           }
+       }
+    // Otherwise, check if route request
+    if( data.type == PTYPE_REQUEST )
+       {        
+        // Add router's address to route
+        data.route.push_back( address );
         
-        // Otherwise, check if route request
-        
-            // Add router's address to route
-            
-            // Send to all neighbors
-            
-        // Otherwise, assume packet was route reply
-          
-            // Send to next router in route 
+        // Send to all neighbors
+        broadcastPacket( data );
+       }    
+    // Otherwise, assume packet was route reply or data
+    else
+       {
+        // Send to next router in route
+         
        }
    }
    
-void sendPacket( Packet data, string destAddress )
+void Router::processRoutes( Packet data )
    {
    
    }
-
-void getPacket( Packet data )
-  {
    
+void Router::sendPacket( Packet data, string destAddress )
+   {
+    // Initialize function/variables
+    int index;
+    
+    // Loop through all routers
+    for( index = 0; index < network->size(), index++ )
+       {
+        // Check if current router matches destination address
+        if( network->at( index ).address == destAddress )
+           {
+            // Send packet to router
+            network->at( index ).getPacket( data );
+           }
+       }
+    // end loop
+   }
+   
+void Router::broadcastPacket( Packet data )
+   {
+    for( index = 0; index < network->size(); index++ )
+       {
+        if( neighbors[ index ] )
+           {
+            network->at( index ).getPacket( data );
+           }
+       }
+   }
+
+void Router::getPacket( Packet data )
+  {
+    // Check if not discarding the packet
+    if( find( seenPackets.begin(), seenPackets.end(), data.packetID ) != seenPackets.end() ) // maybe also check if packet is a route reply
+       {
+        // Add packet to buffer
+        buffer.push( data );
+
+        // Add to seen packets
+        seenPackets.push_back( data.packetID );
+       }
   }   
    
+void swap( string& one, string& other )
+   {
+    string temp = one;
+    one = other;
+    other = temp;
+   }
    
    
    

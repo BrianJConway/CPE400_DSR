@@ -90,7 +90,8 @@ class Router
        void processNextPacket();
        void sendPacket( Packet data, string destAddress );
        void getPacket( Packet data );      
-       
+       void processRoutes( Packet data );
+       void broadcastPacket( Packet data );
        vector<Router> network;
        addressGenerator ipGen;
     
