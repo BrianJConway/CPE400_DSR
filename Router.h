@@ -6,15 +6,16 @@
 #include <string>
 #include <queue>
 #include <set>
+#include <algorithm>
 
 using namespace std;
 
 enum packetType
    {
-    PTYPE_REQUEST
-    PTYPE_REPLY
+    PTYPE_REQUEST,
+    PTYPE_REPLY,
     PTYPE_DATA
-   }
+   };
 
 const double MIN_XPOS = 0.0;
 const double MIN_YPOS = 0.0;
@@ -50,22 +51,28 @@ struct Packet
 class addressGenerator
    {
     public:
-       string getNextAddress();
-    private:
-       static int count = 0;
+       static int count;
+
+       string getNextAddress()
+          {  
+           string result = "192.168." + to_string( count ) + ".0";
+            
+           count++;
+            
+           return result; 
+          }
    };
 
 class packetIDGenerator
    {
     public:
+       static int count;
+
        int getNextID()
           {
            count++;
            return count;
           }
-          
-    private:
-       static int count = 0;
    };
 
 class Router
@@ -111,7 +118,7 @@ class Router
        void broadcastPacket( Packet data );
        bool hasRoute( string address );
        
-       vector<Router> network;
+       vector<Router>* network;
        addressGenerator ipGen;
        packetIDGenerator pidGen;
    };

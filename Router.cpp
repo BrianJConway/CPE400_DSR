@@ -8,15 +8,6 @@ using namespace std;
 
 void swap( string& one, string& other );
 
-string addresGenerator::getNextAddress()
-   {
-    string result = "192.168." + to_string( count ) + ".0";
-    
-    count++;
-    
-    return result; 
-   }
-
 Router::Router()
    {
     // Initialize data members
@@ -43,6 +34,16 @@ Router::Router( const Router& RHS )
     avgYpos = RHS.avgYpos;  
     degree = RHS.degree;
     routerNum = RHS.routerNum;
+    address = RHS.address;
+       
+    seenPackets = RHS.seenPackets;
+    waitingPackets = RHS.waitingPackets;
+    buffer = RHS.buffer;
+    routes = RHS.routes;
+
+    network = RHS.network;
+    ipGen = RHS.ipGen;
+    pidGen = RHS.pidGen;
     
     for( index = 0; index < RHS.neighbors.size(); index++ )
        {
@@ -65,7 +66,17 @@ Router& Router::operator=( const Router& RHS )
         avgXpos = RHS.avgXpos; 
         avgYpos = RHS.avgYpos; 
         routerNum = RHS.routerNum;
-        
+        address = RHS.address;
+           
+        seenPackets = RHS.seenPackets;
+        waitingPackets = RHS.waitingPackets;
+        buffer = RHS.buffer;
+        routes = RHS.routes;
+
+        network = RHS.network;
+        ipGen = RHS.ipGen;
+        pidGen = RHS.pidGen;
+            
         neighbors.clear();
         
         for( index = 0; index < RHS.neighbors.size(); index++ )
@@ -177,27 +188,39 @@ double Router::calcDistance( double x1, double y1, double x2, double y2 )
    
 void Router::stepSimulation()
    {          
+    cout << " buffer size: " << buffer.size();
+    Packet test( 1001, PTYPE_REQUEST, "192.168.0.1", "192.168.5.1" );
+    
+    if( routerNum == 0 )
+    buffer.push( test );
+    
+/*    
     if( !buffer.empty() )
        {
+        cout << "BUFFER NOT EMPTY" << endl;
+        
         // Process next packet in buffer
         Packet data = buffer.front();
         buffer.pop();
         
         // Check if data packet without a route to destination
-        if( data.type == PTYPE_DATA && !( hasRoute( packet.destAddress ) ) )
+        if( data.type == PTYPE_DATA && !( hasRoute( data.destAddress ) ) )
            {
             // Store in waiting packet buffer
-            waitingPackes.push_back( data );
+            waitingPackets.push_back( data );
             
             // Add route request to the destination router
-            Packet request( pidGen->getNextID(), PTYPE_REQUEST, address, data.destAddress );
+            Packet request( pidGen.getNextID(), PTYPE_REQUEST, address, data.destAddress );
             processPacket( request );
            }
         else
            {           
             processPacket( data );
            }
+
        } 
+*/
+
    }
    
 void Router::setNetwork( vector<Router>* n )
@@ -214,7 +237,7 @@ void Router::processPacket( Packet data )
     processRoutes( data );
     
     // Check if we are destination
-    if( packet.destAddress == address )
+    if( data.destAddress == address )
        {
         // Check if packet was route request
         if( data.type == PTYPE_REQUEST )
@@ -285,7 +308,7 @@ void Router::sendPacket( Packet data, string destAddress )
     int index;
     
     // Loop through all routers
-    for( index = 0; index < network->size(), index++ )
+    for( index = 0; index < network->size(); index++ )
        {
         // Check if current router matches destination address
         if( network->at( index ).address == destAddress )
@@ -299,6 +322,8 @@ void Router::sendPacket( Packet data, string destAddress )
    
 void Router::broadcastPacket( Packet data )
    {
+    int index;
+    
     for( index = 0; index < network->size(); index++ )
        {
         if( neighbors[ index ] )

@@ -4,12 +4,14 @@
 #include <stack>
 #include <fstream>
 #include "Router.h"
-#include "Router.cpp"
 
 using namespace std;
 
 const int NUM_ROUTERS = 10;
 const int NUM_ITERATIONS = 100;
+
+int packetIDGenerator::count = 0;
+int addressGenerator::count = 0;
 
 void calcAvgVector( vector<Router>& data );
 bool isConnected( vector<Router>& data );
@@ -20,7 +22,7 @@ int main()
     // Initialization
     int index, index2, routerIndex;
     vector<Router> network( NUM_ROUTERS );
-
+    
        // Loop until a connected graph is generated
        do
           {
@@ -55,12 +57,17 @@ int main()
     // Loop specified number of times for simulation
     for( index = 0; index < NUM_ITERATIONS; index++ )
        {
+        cout << "LOOP "  << index << endl;
         // Loop through all routers
         for( routerIndex = 0; routerIndex < network.size(); routerIndex++ )
            {
-            network[ index ].stepSimulation();
+            cout << "ROUTER " << routerIndex;
+            network[ routerIndex ].stepSimulation();
+            cout << endl;
            }
         // end inner loop
+        
+        cout << endl << endl;
        }
     // end outer loop
     
@@ -96,7 +103,6 @@ void calcAvgVector( vector<Router>& data )
            sumY += data[ index ].yPos;
           }
           
-       
     // Set average for all routers, also set router num
     for( index = 0; index < data.size(); index++ )
        {
