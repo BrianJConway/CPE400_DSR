@@ -34,6 +34,18 @@ struct Route
        {
         return length < other.length;
        }  
+
+    Route& operator=(const Route& other)
+       {
+        length = other.length;
+        
+        path.clear();
+        
+        for( int index = 0; index < path.size(); index++ )
+           {
+            path.push_back( other.path[ index ] );
+           }
+       }  
    };
 
 struct Packet
@@ -117,6 +129,7 @@ class Router
        void processRoutes( Packet data );
        void broadcastPacket( Packet data );
        bool hasRoute( string address );
+       vector<string> getRoute( string address );
        
        vector<Router>* network;
        addressGenerator ipGen;

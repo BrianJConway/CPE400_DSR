@@ -188,39 +188,77 @@ double Router::calcDistance( double x1, double y1, double x2, double y2 )
    
 void Router::stepSimulation()
    {          
-    cout << " buffer size: " << buffer.size();
-    Packet test( 1001, PTYPE_REQUEST, "192.168.0.1", "192.168.5.1" );
+    Packet test( 1001, PTYPE_DATA, "192.168.0.0", "192.168.5.0" );
     
     if( routerNum == 0 )
-    buffer.push( test );
-    
-/*    
+       {
+        std::random_device rd;
+        std::mt19937 mt(rd());
+        std::uniform_real_distribution<double> dist(1.0, 20.0);
+        
+        double t = dist( mt ); 
+        
+        if( t <= 2.0 )
+           {       
+            buffer.push( test );
+           }
+       }
+
+    cout << " buffer size: " << buffer.size();
+       
     if( !buffer.empty() )
        {
-        cout << "BUFFER NOT EMPTY" << endl;
+        cout << " BUFFER NOT EMPTY" << endl;
         
         // Process next packet in buffer
         Packet data = buffer.front();
         buffer.pop();
         
         // Check if data packet without a route to destination
-        if( data.type == PTYPE_DATA && !( hasRoute( data.destAddress ) ) )
+        if( data.type == PTYPE_DATA && !( hasRoute( data.destAddress ) ) && data.destAddress != address )
            {
             // Store in waiting packet buffer
             waitingPackets.push_back( data );
             
             // Add route request to the destination router
             Packet request( pidGen.getNextID(), PTYPE_REQUEST, address, data.destAddress );
+            seenPackets.push_back( request.packetID );
+            request.route.path.push_back( address );
             processPacket( request );
            }
         else
-           {           
+           {
+            if( data.type == PTYPE_DATA && data.srcAddress == address )
+               {
+                data.route.path = getRoute( data.destAddress );
+               }           
+               
             processPacket( data );
            }
 
        } 
-*/
-
+   }
+  
+  
+vector<string> Router::getRoute( string address )
+   {
+    string currentDest;
+    
+    // Loop through known routes
+    for( set<Route>::iterator it = routes.begin(); it != routes.end(); it++ )
+       {
+        vector<string> route = it->path;
+        
+        // Get last address in current route's path
+        currentDest = it->path.back();
+        
+        // Check if route ends with destination address
+        if( currentDest == address )
+           {
+            return route;
+           }
+       }
+    //end loop
    }
    
 void Router::setNetwork( vector<Router>* n )
@@ -232,36 +270,77 @@ void Router::processPacket( Packet data )
    {
     // initialize function/variables
     int index;
-        
+    
+cout << "ROUTER " << address << "Processing Packet ID " << data.packetID << endl;
+
     // Process routes from packet
     processRoutes( data );
-    
+   
     // Check if we are destination
     if( data.destAddress == address )
        {
         // Check if packet was route request
         if( data.type == PTYPE_REQUEST )
            {
+// TODO: DEBUG
+cout << endl << "ROUTER " << address << "RECEIVED RREQ FROM " << data.srcAddress << endl;
             // Generate route reply
             data.type = PTYPE_REPLY;
             swap( data.srcAddress, data.destAddress );
-            reverse( data.route.path.begin(), data.route.path.end() );
-            
+            reverse( data.route.path.begin(), data.route.path.end() );       
+          
+        for( int index = 0; index < data.route.path.size(); index++ )
+           {
+            cout << data.route.path[ index ] << "  ";
+           }
+        cout << endl;
+        
             // Send route reply to next router in route
             vector<string>::iterator it = find( data.route.path.begin(), data.route.path.end(), address );
+            
             sendPacket( data, *( next( it ) ) );
            }
-        // Otherwise, assume packet was returning route reply
+        // Otherwise, check if packet was returning route reply
+        else if( data.type == PTYPE_REPLY )
+           {      
+// TODO: DEBUG
+cout << "ROUTER " << address << "RECEIVED RREP FROM " << data.srcAddress << endl;
+
+            // Check if there is a corresponding waiting packet
+            for( vector<Packet>::iterator it2 = waitingPackets.begin(); it2 != waitingPackets.end(); it2++ )
+               {
+                cout << "loopin through waiting packets" << endl;
+                
+                // Check if destination of waiting packet matches src of route reply
+                if( (*it2).destAddress == data.srcAddress )
+                   {
+                    cout << "found waiting packet that matches route" << endl;
+                    reverse( data.route.path.begin(), data.route.path.end() );  
+                         
+                    for( int index = 0; index < data.route.path.size(); index++ )
+                       {
+                        it2->route.path.push_back( data.route.path[ index ] );
+                       }
+        
+                    processPacket( *it2 );
+                    waitingPackets.erase( it2 );
+                    break;
+                   }
+               } 
+            cout << "DONE PROCESSING ROUTE REPLY" << endl;
+           }
+           
+        // Otherwise, assume it's a data packet
         else
            {
-            
+            cout << "ROUTER " << address << " RECEIVED DATA PACKET FROM " << data.srcAddress << endl;
            }
        }
     // Otherwise, check if route request
     else if( data.type == PTYPE_REQUEST )
        {        
-        // Add router's address to route
-        data.route.path.push_back( address );
+// TODO: DEBUG
+cout << "ROUTER " << address << " BROADCASTING RREQ DEST " << data.destAddress << endl;
         
         // Send to all neighbors
         broadcastPacket( data );
@@ -269,9 +348,20 @@ void Router::processPacket( Packet data )
     // Otherwise, assume packet was returning route reply or data
     else
        {
+        if( data.type == PTYPE_DATA )
+           {
+            cout << "PROCESSING DATA PACKET, ROUTE: " << endl;
+            for( int index = 0; index < data.route.path.size(); index++ )
+           {
+            cout << data.route.path[ index ] << "  ";
+           }
+        cout << endl;
+           } 
+           
         // Send to next router in route
-        vector<string>::iterator it = find( data.route.path.begin(), data.route.path.end(), address );
+        vector<string>::iterator it = find( data.route.path.begin(), data.route.path.end(), address );      
         sendPacket( data, *( next( it ) ) );
+
        }
    }
    
@@ -282,10 +372,6 @@ void Router::processRoutes( Packet data )
     
     // Get route from packet
     Route route = data.route;
-    
-    // Add self to the end of route
-    route.path.push_back( address );
-    route.length++;
     
     // Reverse route
     reverse( route.path.begin(), route.path.end() );
@@ -300,6 +386,11 @@ void Router::processRoutes( Packet data )
         route.path.pop_back();
         route.length--;
        }
+if( address == "192.168.5.0" )
+   {
+    cout << "DONE PROCESSING ROUTES ROUTER 5" << endl;
+   }
+   
    }
    
 void Router::sendPacket( Packet data, string destAddress )
@@ -313,6 +404,7 @@ void Router::sendPacket( Packet data, string destAddress )
         // Check if current router matches destination address
         if( network->at( index ).address == destAddress )
            {
+cout << "ROUTER " << address << " SENDING PACKET TO " << destAddress << endl;
             // Send packet to router
             network->at( index ).getPacket( data );
            }
@@ -324,10 +416,12 @@ void Router::broadcastPacket( Packet data )
    {
     int index;
     
+cout << "ROUTER " << address << "START BROADCASTING" <<  endl;
     for( index = 0; index < network->size(); index++ )
        {
         if( neighbors[ index ] )
            {
+cout << "ROUTER " << address << " BROADCASTING PACKET TO " << network->at(index).address <<  endl;
             network->at( index ).getPacket( data );
            }
        }
@@ -336,8 +430,17 @@ void Router::broadcastPacket( Packet data )
 void Router::getPacket( Packet data )
   {
     // Check if not discarding the packet
-    if( find( seenPackets.begin(), seenPackets.end(), data.packetID ) != seenPackets.end() ) // maybe also check if packet is a route reply
+    if( find( seenPackets.begin(), seenPackets.end(), data.packetID ) == seenPackets.end() || data.type == PTYPE_REPLY || data.type == PTYPE_DATA ) // maybe also check if packet is a route reply
        {
+        cout << "ROUTER " << address << " RECEIVED PACKET" << endl;
+        
+        // Add self to packet route if route request
+        if( data.type == PTYPE_REQUEST )
+           {           
+            data.route.path.push_back( address );
+            data.route.length++;
+           }
+        
         // Add packet to buffer
         buffer.push( data );
 
