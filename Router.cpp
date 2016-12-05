@@ -8,6 +8,7 @@ using namespace std;
 
 void swap( string& one, string& other );
 
+// Host Constructor
 Host::Host( Router* r, vector<Router>* n )
    {
     router = r;
@@ -16,23 +17,30 @@ Host::Host( Router* r, vector<Router>* n )
 
 void Host::stepSimulation()
    {
-    // Generate hosts
+    // Initialization
     random_device rd;
     default_random_engine generator( rd() );
+    
+    // Generates integers between 1 and PACKET_RARITY constant
     uniform_int_distribution<int> dist1( 1, PACKET_RARITY );
+    
+    // Generates random integer for the index of a router
     uniform_int_distribution<int> dist2( 0, network->size() - 1 );
     
     // Get random chance to send packet and get a destination router address
     int packetChance = dist1( generator );
     int destRouter = dist2( generator );
     
+    // Ensure packet's destination isn't the host's router 
     while( destRouter == router->routerNum )
        {
         destRouter = dist2( generator );
        }
        
+    // Get the address of the destination router based on the router's index in the network
     string destAddress = network->at( destRouter ).address;
     
+    // If randomly generated number based on rarity constant was 1, send the packet to the rotuer
     if( packetChance == 1 )
        {
         // Generate packet and send to router
@@ -156,10 +164,10 @@ void Router::placeRouter( int numRouter )
     uniform_real_distribution<double> dist1( MIN_XPOS, MAX_XPOS );
     uniform_real_distribution<double> dist2( MIN_YPOS, MAX_YPOS );
     
-    // Set sensor num
+    // Set router num
     routerNum = numRouter;
     
-    // Generate position of sensor and distance from the target
+    // Generate position of router
     
        // Generate x coordinate
        xPos = dist1( generator );
@@ -177,7 +185,7 @@ void Router::calcNeighbors( int routerNum, vector<Router>& data )
     double distance;
     degree = 0;
     
-    // Loop through all sensors
+    // Loop through all routers
     for( index = 0; index < data.size(); index++ )
        {
         // Reset flag
@@ -186,10 +194,10 @@ void Router::calcNeighbors( int routerNum, vector<Router>& data )
         // Check if not comparing to self
         if( index != routerNum )
            {
-            // Calculate distance to other sensor
+            // Calculate distance to other router
             distance = calcDistance( xPos, yPos, data[ index ].xPos, data[ index].yPos );
                                                            
-            // Check if sensor is within communication range
+            // Check if router is within communication range
             if( distance <= COMMUNICATION_RANGE )
                {
                 // Set neighbor flag
@@ -224,16 +232,16 @@ void Router::stepSimulation()
     // Loop through all hosts
     for( int index = 0; index < hosts.size(); index++ )
        {
+        // Host may or may not send router a packet to a random other router
         hosts[ index ].stepSimulation();
        }
     // end loop
         
-    cout << " buffer size: " << buffer.size();
+    cout << " Buffer Size: " << buffer.size() << endl;
        
+    // Check if there is a packet in the buffer
     if( !buffer.empty() )
        {
-        cout << " BUFFER NOT EMPTY" << endl;
-        
         // Process next packet in buffer
         Packet data = buffer.front();
         buffer.pop();
@@ -241,22 +249,26 @@ void Router::stepSimulation()
         // Check if data packet without a route to destination
         if( data.type == PTYPE_DATA && !( hasRoute( data.destAddress ) ) && data.destAddress != address )
            {
-            // Store in waiting packet buffer
+            // Store in waiting packet buffer since we don't have a route yet
             waitingPackets.push_back( data );
             
-            // Add route request to the destination router
+            // Add and process a route request to the packet's destination router to obtain a route
             Packet request( pidGen.getNextID(), PTYPE_REQUEST, address, data.destAddress );
             seenPackets.push_back( request.packetID );
             request.route.path.push_back( address );
             processPacket( request );
            }
+        // Otherwise, assume packet is either a data packet with a route, a route reply, or a route request
         else
            {
+            // Check if packet is a data packet from the current router
             if( data.type == PTYPE_DATA && data.srcAddress == address )
                {
+                // Attach route to data packet
                 data.route.path = getRoute( data.destAddress );
                }           
                
+            // Process the packet
             processPacket( data );
            }
 
