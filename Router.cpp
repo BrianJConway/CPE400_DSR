@@ -8,6 +8,39 @@ using namespace std;
 
 void swap( string& one, string& other );
 
+Host::Host( Router* r, vector<Router>* n )
+   {
+    router = r;
+    network = n;
+   }
+
+void Host::stepSimulation()
+   {
+    // Generate hosts
+    random_device rd;
+    default_random_engine generator( rd() );
+    uniform_int_distribution<int> dist1( 1, PACKET_RARITY );
+    uniform_int_distribution<int> dist2( 0, network->size() - 1 );
+    
+    // Get random chance to send packet and get a destination router address
+    int packetChance = dist1( generator );
+    int destRouter = dist2( generator );
+    
+    while( destRouter == router->routerNum )
+       {
+        destRouter = dist2( generator );
+       }
+       
+    string destAddress = network->at( destRouter ).address;
+    
+    if( packetChance == 1 )
+       {
+        // Generate packet and send to router
+        Packet dataPacket( pidGen.getNextID(), PTYPE_DATA, router->address, destAddress );
+        router->buffer.push( dataPacket );
+       }
+   }
+
 Router::Router()
    {
     // Initialize data members
@@ -19,7 +52,6 @@ Router::Router()
     routerNum = -1;
     
     address = ipGen.getNextAddress();
-    
    }
    
 Router::Router( const Router& RHS )
@@ -188,22 +220,14 @@ double Router::calcDistance( double x1, double y1, double x2, double y2 )
    
 void Router::stepSimulation()
    {          
-    Packet test( 1001, PTYPE_DATA, "192.168.0.0", "192.168.5.0" );
     
-    if( routerNum == 0 )
+    // Loop through all hosts
+    for( int index = 0; index < hosts.size(); index++ )
        {
-        std::random_device rd;
-        std::mt19937 mt(rd());
-        std::uniform_real_distribution<double> dist(1.0, 20.0);
-        
-        double t = dist( mt ); 
-        
-        if( t <= 2.0 )
-           {       
-            buffer.push( test );
-           }
+        hosts[ index ].stepSimulation();
        }
-
+    // end loop
+        
     cout << " buffer size: " << buffer.size();
        
     if( !buffer.empty() )
@@ -263,7 +287,21 @@ vector<string> Router::getRoute( string address )
    
 void Router::setNetwork( vector<Router>* n )
    {
+    // Set network
     network = n;
+
+    // Generate hosts
+    random_device rd;
+    default_random_engine generator( rd() );
+    uniform_int_distribution<int> dist1( 1, 3 );
+    int numHosts = dist1( generator );
+    
+    Host host( this, network );
+    
+    for( int index = 0; index < numHosts; index++ )
+       {
+        hosts.push_back( host );
+       }
    }
 
 void Router::processPacket( Packet data )
@@ -273,8 +311,11 @@ void Router::processPacket( Packet data )
     
 cout << "ROUTER " << address << "Processing Packet ID " << data.packetID << endl;
 
-    // Process routes from packet
-    processRoutes( data );
+    // Process routes from packet if route request or route reply
+    if( data.type != PTYPE_DATA )
+       {       
+        processRoutes( data );
+       }
    
     // Check if we are destination
     if( data.destAddress == address )

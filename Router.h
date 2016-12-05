@@ -10,6 +10,8 @@
 
 using namespace std;
 
+class Host;
+
 enum packetType
    {
     PTYPE_REQUEST,
@@ -23,6 +25,8 @@ const double MAX_XPOS = 10.0;
 const double MAX_YPOS = 10.0;
 
 const double COMMUNICATION_RANGE = 3.50;
+
+const int PACKET_RARITY = 1000;
 
 struct Route
    {
@@ -115,7 +119,10 @@ class Router
        
        int routerNum;
        string address;
-       
+
+       vector<int> reputations;       
+       vector<char> geneSeq;
+
        vector<bool> neighbors;
        vector<int> seenPackets;
        vector<Packet> waitingPackets;
@@ -130,9 +137,22 @@ class Router
        void broadcastPacket( Packet data );
        bool hasRoute( string address );
        vector<string> getRoute( string address );
+       vector<Host> hosts;
        
        vector<Router>* network;
        addressGenerator ipGen;
+       packetIDGenerator pidGen;
+   };
+
+class Host
+   {
+    public:
+       Host( Router* r, vector<Router>* n );
+       void stepSimulation();
+       
+    private:   
+       Router* router; 
+       vector<Router>* network;
        packetIDGenerator pidGen;
    };
 
