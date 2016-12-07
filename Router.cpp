@@ -152,20 +152,6 @@ ostream& operator<<( ostream& out, const Router& src )
           }
           
        cout << endl;
-
-/*
-       // Output which sensors are neighbors
-       cout << "Reputations of neighbors: ";
-       for( index = 0; index < src.neighbors.size(); index++ )
-          {
-           if( src.neighbors[ index ] == true )
-              {
-               cout << src.reputations[index] << " ";
-              }
-          }
-          
-       cout << endl;
-*/
          
     // Return ostream object
     return out;
@@ -444,39 +430,39 @@ cout << "ROUTER " << address << " Processing Packet ID " << data.packetID << end
             	cout << data.route.path[ index ] << "  ";
             	}
             cout << endl;
-           } 
-           
 
-	if( data.type == PTYPE_REPLY )
-		{
-		geneSeq.push_back( 'P' );
-		}
+	   // Initialization of random generator
+	   random_device rd;
+	   default_random_engine generator( rd() );
 
+	   // Generates integers between 1 and 5
+	   uniform_int_distribution<int> chance1( 1, 10 );	
+	   int dataPacketChance = chance1( generator );
 
-    // Initialization
-    random_device rd;
-    default_random_engine generator( rd() );
-    
-    // Generates integers between 1 and 20
-    uniform_int_distribution<int> chance1( 1, 10 );	
-
-    int dataPacketChance = chance1( generator );
-
-	if( dataPacketChance == 1 )
+	   // If the chance is rolled, the data packet is lost
+	   if( dataPacketChance == 1 )
 		{
 		cout << endl << "This packet was lost, Q added" << endl;
 		geneSeq.push_back( 'Q' );
 		}
-	else
+	   // Otherwise add a D for data to represent it was sent successfully
+	   else
 		{
 		geneSeq.push_back( 'D' );
+		// Send to next router in route
+		vector<string>::iterator it = find( data.route.path.begin(), data.route.path.end(), address );      
+		sendPacket( data, *( next( it ) ) );
 		}
-	
-
-        // Send to next router in route
-        vector<string>::iterator it = find( data.route.path.begin(), data.route.path.end(), address );      
-        sendPacket( data, *( next( it ) ) );
-
+           }
+           
+	// If the data was a reply, push a P onto the gene sequence
+	if( data.type == PTYPE_REPLY )
+		{
+		geneSeq.push_back( 'P' );
+		// Send to next router in route
+		vector<string>::iterator it = find( data.route.path.begin(), data.route.path.end(), address );      
+		sendPacket( data, *( next( it ) ) );
+		}
        }
    }
    
@@ -594,8 +580,10 @@ void swap( string& one, string& other )
 void Router::checkReputations()
 	{
 
+	// Initialize variables
 	int Qcounter;
 
+	// Loop through all routers in the network to adjust the reputation between nodes
 	for( int index = 0; index < network->size(); index++ )
 		{
 		Qcounter = 0;
@@ -610,12 +598,13 @@ void Router::checkReputations()
 					}
 				}
 
+			// Adjust reputation only if there is actually a gene sequence to check
 			if( geneSeq.size() != 0 )
 				{
 				reputations[index] = 100 - ((Qcounter*100)/geneSeq.size()); 
 				}
 		
-			cout << "Current rep of neighbor " << index << ": " << reputations[index] << endl;		
+			cout << "Current rep to neighbor " << index << ": " << reputations[index] << endl;		
 			}
 		}	
 	}
