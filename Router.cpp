@@ -40,7 +40,7 @@ void Host::stepSimulation()
     // Get the address of the destination router based on the router's index in the network
     string destAddress = network->at( destRouter ).address;
     
-    // If randomly generated number based on rarity constant was 1, send the packet to the rotuer
+    // If randomly generated number based on rarity constant was 1, send the packet to the router
     if( packetChance == 1 )
        {
         // Generate packet and send to router
@@ -151,6 +151,20 @@ ostream& operator<<( ostream& out, const Router& src )
           }
           
        cout << endl;
+
+/*
+       // Output which sensors are neighbors
+       cout << "Reputations of neighbors: ";
+       for( index = 0; index < src.neighbors.size(); index++ )
+          {
+           if( src.neighbors[ index ] == true )
+              {
+               cout << src.reputations[index] << " ";
+              }
+          }
+          
+       cout << endl;
+*/
          
     // Return ostream object
     return out;
@@ -181,6 +195,7 @@ void Router::calcNeighbors( int routerNum, vector<Router>& data )
    {
     // initialize function/variables
     int index;
+    int reputation;
     bool isNeighbor;
     double distance;
     degree = 0;
@@ -202,12 +217,18 @@ void Router::calcNeighbors( int routerNum, vector<Router>& data )
                {
                 // Set neighbor flag
                 isNeighbor = true;
+		reputation = 100;
                 degree++;
                }
+	    else
+		{
+		reputation = 0;
+		}
            }    
            
         // Push neighbor flag to neighbor vector
         neighbors.push_back( isNeighbor );
+	reputations.push_back( reputation );
        }
     // end loop
    }
@@ -238,6 +259,9 @@ void Router::stepSimulation()
     // end loop
         
     cout << " Buffer Size: " << buffer.size() << endl;
+
+	// Add check to update reputations of all neighbors in the network
+	checkReputations();
        
     // Check if there is a packet in the buffer
     if( !buffer.empty() )
@@ -321,7 +345,7 @@ void Router::processPacket( Packet data )
     // initialize function/variables
     int index;
     
-cout << "ROUTER " << address << "Processing Packet ID " << data.packetID << endl;
+cout << "ROUTER " << address << " Processing Packet ID " << data.packetID << endl;
 
     // Process routes from packet if route request or route reply
     if( data.type != PTYPE_DATA )
@@ -335,29 +359,36 @@ cout << "ROUTER " << address << "Processing Packet ID " << data.packetID << endl
         // Check if packet was route request
         if( data.type == PTYPE_REQUEST )
            {
-// TODO: DEBUG
-cout << endl << "ROUTER " << address << "RECEIVED RREQ FROM " << data.srcAddress << endl;
-            // Generate route reply
-            data.type = PTYPE_REPLY;
-            swap( data.srcAddress, data.destAddress );
-            reverse( data.route.path.begin(), data.route.path.end() );       
+	   // TODO: DEBUG
+	   cout << "ROUTER " << address << " RECEIVED RREQ FROM " << data.srcAddress << endl << endl;
+           
+	   // Generate route reply
+           data.type = PTYPE_REPLY;
+           swap( data.srcAddress, data.destAddress );
+           reverse( data.route.path.begin(), data.route.path.end() );       
           
-        for( int index = 0; index < data.route.path.size(); index++ )
-           {
-            cout << data.route.path[ index ] << "  ";
-           }
-        cout << endl;
+	   // Show the path the packet is traveling
+	   cout << "Sending packet back to source along the path:" << endl;
+           for( int index = 0; index < data.route.path.size(); index++ )
+           	{
+           	cout << data.route.path[ index ] << "  ";
+           	}
+           cout << endl << endl;
         
             // Send route reply to next router in route
             vector<string>::iterator it = find( data.route.path.begin(), data.route.path.end(), address );
             
+	    // Add P for reply to gene sequence
+	    geneSeq.push_back( 'P' );
+
+
             sendPacket( data, *( next( it ) ) );
            }
         // Otherwise, check if packet was returning route reply
         else if( data.type == PTYPE_REPLY )
            {      
-// TODO: DEBUG
-cout << "ROUTER " << address << "RECEIVED RREP FROM " << data.srcAddress << endl;
+	// TODO: DEBUG
+	cout << "ROUTER " << address << " RECEIVED RREP FROM " << data.srcAddress << endl;
 
             // Check if there is a corresponding waiting packet
             for( vector<Packet>::iterator it2 = waitingPackets.begin(); it2 != waitingPackets.end(); it2++ )
@@ -379,7 +410,7 @@ cout << "ROUTER " << address << "RECEIVED RREP FROM " << data.srcAddress << endl
                     waitingPackets.erase( it2 );
                     break;
                    }
-               } 
+               }
             cout << "DONE PROCESSING ROUTE REPLY" << endl;
            }
            
@@ -391,13 +422,16 @@ cout << "ROUTER " << address << "RECEIVED RREP FROM " << data.srcAddress << endl
        }
     // Otherwise, check if route request
     else if( data.type == PTYPE_REQUEST )
-       {        
-// TODO: DEBUG
-cout << "ROUTER " << address << " BROADCASTING RREQ DEST " << data.destAddress << endl;
+       {       
+	// TODO: DEBUG
+	cout << "ROUTER " << address << " BROADCASTING RREQ DEST " << data.destAddress << endl;
         
+	// Add R for request to gene sequence
+	geneSeq.push_back( 'R' );
+
         // Send to all neighbors
         broadcastPacket( data );
-       }    
+       }   
     // Otherwise, assume packet was returning route reply or data
     else
        {
@@ -405,12 +439,39 @@ cout << "ROUTER " << address << " BROADCASTING RREQ DEST " << data.destAddress <
            {
             cout << "PROCESSING DATA PACKET, ROUTE: " << endl;
             for( int index = 0; index < data.route.path.size(); index++ )
-           {
-            cout << data.route.path[ index ] << "  ";
-           }
-        cout << endl;
+            	{
+            	cout << data.route.path[ index ] << "  ";
+            	}
+            cout << endl;
            } 
            
+
+	if( data.type == PTYPE_REPLY )
+		{
+		geneSeq.push_back( 'P' );
+		}
+
+
+    // Initialization
+    random_device rd;
+    default_random_engine generator( rd() );
+    
+    // Generates integers between 1 and 20
+    uniform_int_distribution<int> chance1( 1, 10 );	
+
+    int dataPacketChance = chance1( generator );
+
+	if( dataPacketChance == 1 )
+		{
+		cout << endl << "This packet was lost, Q added" << endl;
+		geneSeq.push_back( 'Q' );
+		}
+	else
+		{
+		geneSeq.push_back( 'D' );
+		}
+	
+
         // Send to next router in route
         vector<string>::iterator it = find( data.route.path.begin(), data.route.path.end(), address );      
         sendPacket( data, *( next( it ) ) );
@@ -439,11 +500,6 @@ void Router::processRoutes( Packet data )
         route.path.pop_back();
         route.length--;
        }
-if( address == "192.168.5.0" )
-   {
-    cout << "DONE PROCESSING ROUTES ROUTER 5" << endl;
-   }
-   
    }
    
 void Router::sendPacket( Packet data, string destAddress )
@@ -457,7 +513,7 @@ void Router::sendPacket( Packet data, string destAddress )
         // Check if current router matches destination address
         if( network->at( index ).address == destAddress )
            {
-cout << "ROUTER " << address << " SENDING PACKET TO " << destAddress << endl;
+	    cout << "ROUTER " << address << " SENDING PACKET TO " << destAddress << endl;
             // Send packet to router
             network->at( index ).getPacket( data );
            }
@@ -469,12 +525,12 @@ void Router::broadcastPacket( Packet data )
    {
     int index;
     
-cout << "ROUTER " << address << "START BROADCASTING" <<  endl;
+cout << "ROUTER " << address << " START BROADCASTING" <<  endl;
     for( index = 0; index < network->size(); index++ )
        {
         if( neighbors[ index ] )
            {
-cout << "ROUTER " << address << " BROADCASTING PACKET TO " << network->at(index).address <<  endl;
+	    cout << "ROUTER " << address << " BROADCASTING PACKET TO " << network->at(index).address <<  endl;
             network->at( index ).getPacket( data );
            }
        }
@@ -533,7 +589,31 @@ void swap( string& one, string& other )
     other = temp;
    }
    
-   
+  
+void Router::checkReputations()
+	{
+
+	int Qcounter;
+
+	//cout << "Checking/updating reputations of nodes in the network..." <<  endl;
+	for( int index = 0; index < network->size(); index++ )
+		{
+		Qcounter = 0;
+
+		if( neighbors[ index ] )
+			{
+			for( int i = 0; i < geneSeq.size(); i++ )
+				{
+				if( geneSeq[i] == 'Q' )
+					{
+					Qcounter++;
+					}
+				}			
+			reputations[index] -= Qcounter;	
+			cout << "Current rep: " << reputations[index] << endl;		
+			}
+		}	
+	}
    
    
    

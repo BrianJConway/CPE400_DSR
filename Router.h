@@ -136,6 +136,7 @@ class Router
        void processRoutes( Packet data );
        void broadcastPacket( Packet data );
        bool hasRoute( string address );
+       void checkReputations();
        vector<string> getRoute( string address );
        vector<Host> hosts;
        

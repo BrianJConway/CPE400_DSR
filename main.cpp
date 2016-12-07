@@ -61,6 +61,12 @@ int main()
         // Loop through all routers
         for( routerIndex = 0; routerIndex < network.size(); routerIndex++ )
            {
+	    cout << "Current Gene Sequence: ";
+		for( int i = 0; i < network[routerIndex].geneSeq.size(); i++ )
+			{
+			cout << network[routerIndex].geneSeq[i];
+			}
+	    cout << endl;
             cout << "ROUTER " << routerIndex;
             network[ routerIndex ].stepSimulation();
             cout << endl;
