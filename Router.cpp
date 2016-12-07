@@ -436,7 +436,7 @@ cout << "ROUTER " << address << " Processing Packet ID " << data.packetID << end
 	   default_random_engine generator( rd() );
 
 	   // Generates integers between 1 and 5
-	   uniform_int_distribution<int> chance1( 1, 10 );	
+	   uniform_int_distribution<int> chance1( 1, 5 );	
 	   int dataPacketChance = chance1( generator );
 
 	   // If the chance is rolled, the data packet is lost
@@ -604,7 +604,13 @@ void Router::checkReputations()
 				reputations[index] = 100 - ((Qcounter*100)/geneSeq.size()); 
 				}
 		
-			cout << "Current rep to neighbor " << index << ": " << reputations[index] << endl;		
+			cout << "Current rep to neighbor " << index << ": " << reputations[index] << endl;
+
+			if( reputations[index] < 75 )
+				{
+				cout << endl << endl << "REPUTATION DANGEROUSLY LOW, NODE WILL BE TERMINATED...." << endl << endl << endl;
+				neighbors[index] = false;
+				}		
 			}
 		}	
 	}
