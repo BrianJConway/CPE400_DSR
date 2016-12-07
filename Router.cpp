@@ -58,6 +58,7 @@ Router::Router()
     avgXpos = 0;
     avgYpos = 0;
     routerNum = -1;
+    reputations.reserve(10);
     
     address = ipGen.getNextAddress();
    }
@@ -217,18 +218,18 @@ void Router::calcNeighbors( int routerNum, vector<Router>& data )
                {
                 // Set neighbor flag
                 isNeighbor = true;
-		reputation = 100;
+		reputations[index] = 100;
                 degree++;
                }
 	    else
 		{
-		reputation = 0;
+		reputations[index] = 0;
 		}
            }    
            
         // Push neighbor flag to neighbor vector
         neighbors.push_back( isNeighbor );
-	reputations.push_back( reputation );
+	//reputations.push_back( reputation );
        }
     // end loop
    }
@@ -595,7 +596,6 @@ void Router::checkReputations()
 
 	int Qcounter;
 
-	//cout << "Checking/updating reputations of nodes in the network..." <<  endl;
 	for( int index = 0; index < network->size(); index++ )
 		{
 		Qcounter = 0;
@@ -608,9 +608,14 @@ void Router::checkReputations()
 					{
 					Qcounter++;
 					}
-				}			
-			reputations[index] -= Qcounter;	
-			cout << "Current rep: " << reputations[index] << endl;		
+				}
+
+			if( geneSeq.size() != 0 )
+				{
+				reputations[index] = 100 - ((Qcounter*100)/geneSeq.size()); 
+				}
+		
+			cout << "Current rep of neighbor " << index << ": " << reputations[index] << endl;		
 			}
 		}	
 	}
