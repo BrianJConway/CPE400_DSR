@@ -590,32 +590,63 @@ void Router::checkReputations()
 
 		if( neighbors[ index ] )
 			{
-			for( int i = 0; i < geneSeq.size(); i++ )
+			for( int i = 0; i < network->at( index ).geneSeq.size(); i++ )
 				{
-				if( geneSeq[i] == 'Q' )
+				if( network->at( index ).geneSeq[i] == 'Q' )
 					{
 					Qcounter++;
 					}
 				}
 
 			// Adjust reputation only if there is actually a gene sequence to check
-			if( geneSeq.size() != 0 )
+			if( network->at( index ).geneSeq.size() != 0 )
 				{
-				reputations[index] = 100 - ((Qcounter*100)/geneSeq.size()); 
+				reputations[index] = 100 - ((Qcounter*100)/network->at( index ).geneSeq.size()); 
 				}
 		
 			cout << "Current rep to neighbor " << index << ": " << reputations[index] << endl;
 
+			// If reputation falls too low, set respective neighbor flags to false and delete routes with bad node in them
 			if( reputations[index] < 75 )
 				{
 				cout << endl << endl << "REPUTATION DANGEROUSLY LOW, NODE WILL BE TERMINATED...." << endl << endl << endl;
 				neighbors[index] = false;
+				network->at( index ).neighbors[ routerNum ] = false;
+				deleteRoutes( index );
 				}		
 			}
 		}	
 	}
    
-   
+void Router::deleteRoutes( int routerIndex )
+	{
+	bool deleted = true;
+
+	string address = network->at( routerIndex ).address;
+
+	while( deleted )
+		{
+		deleted = false;
+
+		for( set<Route>::iterator it = routes.begin(); it != routes.end(); it++ )
+			{
+			if( find( it->path.begin(), it->path.end(), address ) != it->path.end() )
+				{
+				routes.erase( it );
+				deleted = true;
+				break;
+				}
+			}
+		}
+	}
+
+
+
+
+
+
+
+  
    
    
    
