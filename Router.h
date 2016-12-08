@@ -114,7 +114,7 @@ class Router
        
        // Supplementary functions
        void placeRouter( int numRouter );
-       void calcNeighbors( int sensorNum, vector<Router>& data );
+       void calcNeighbors( int routerNum, vector<Router>& data );
        double calcDistance( double x1, double y1, double x2, double y2 );
        void setNetwork( vector<Router>* n );
        

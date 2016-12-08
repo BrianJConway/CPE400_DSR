@@ -68,7 +68,7 @@ Router::Router( const Router& RHS )
     // initialize function/variables
     int index;
     
-    // Copy data of other sensor
+    // Copy data of other router
     xPos = RHS.xPos;
     yPos = RHS.yPos;
     avgXpos = RHS.avgXpos; 
@@ -100,7 +100,7 @@ Router& Router::operator=( const Router& RHS )
     // Check if assigning to itself
     if( this != &RHS )
        {
-        // Copy data of other sensor
+        // Copy data of other router
         xPos = RHS.xPos;
         yPos = RHS.yPos;
         degree = RHS.degree;
@@ -135,7 +135,7 @@ ostream& operator<<( ostream& out, const Router& src )
     int index;
     double sum = 0;
     
-    // Output sensor data
+    // Output router data
     out << "Position: ( " << src.xPos << ", " << src.yPos << " )" << endl
          << "avg. xPos: " << src.avgXpos << endl
          << "avg. yPos: " << src.avgYpos << endl
@@ -143,7 +143,7 @@ ostream& operator<<( ostream& out, const Router& src )
          << "number of routes: " << src.routes.size() << endl
          << "number of hosts connected to router: " << src.hosts.size() << endl;
          
-       // Output which sensors are neighbors
+       // Output which routers are neighbors
        out << "Neighbors: ";
        for( index = 0; index < src.neighbors.size(); index++ )
           {

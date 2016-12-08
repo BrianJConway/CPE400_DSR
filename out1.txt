@@ -1,0 +1,100 @@
+ROUTER 0
+Position: ( 5.10068, 6.01199 )
+avg. xPos: 4.26155
+avg. yPos: 5.18381
+initial degree: 3
+number of routes: 4
+number of hosts connected to router: 2
+Neighbors: 6 9 
+Final gene sequence: RRRPPDRPDRRDRRRRRRRPRDRRRQRPRDRRRPQQRRRRRRPDRDRPRDRRRRDRRRPRDRRRD
+
+ROUTER 1
+Position: ( 3.62624, 0.882738 )
+avg. xPos: 4.26155
+avg. yPos: 5.18381
+initial degree: 2
+number of routes: 3
+number of hosts connected to router: 2
+Neighbors: 2 9 
+Final gene sequence: RRRRRPPRPPPRPPPRRRRRRRRRRRRDRRRQRRPPPRRRRRRDR
+
+ROUTER 2
+Position: ( 1.48947, 3.26071 )
+avg. xPos: 4.26155
+avg. yPos: 5.18381
+initial degree: 2
+number of routes: 3
+number of hosts connected to router: 1
+Neighbors: 1 9 
+Final gene sequence: RRRRQRRRRRRDRRRRRRRPPPPRRPPPRPRRRDRQRRRDRRPPPPR
+
+ROUTER 3
+Position: ( 3.31929, 7.92388 )
+avg. xPos: 4.26155
+avg. yPos: 5.18381
+initial degree: 4
+number of routes: 4
+number of hosts connected to router: 2
+Neighbors: 
+Final gene sequence: RRQDRRRQDR
+
+ROUTER 4
+Position: ( 7.6312, 2.00915 )
+avg. xPos: 4.26155
+avg. yPos: 5.18381
+initial degree: 2
+number of routes: 4
+number of hosts connected to router: 3
+Neighbors: 8 9 
+Final gene sequence: RRPRDRRRRRRDRRRRRRQRRRRRRRPDDRRPRDRPQRDRRRPDPRDPRDRRRRRRRQRD
+
+ROUTER 5
+Position: ( 0.973482, 8.01927 )
+avg. xPos: 4.26155
+avg. yPos: 5.18381
+initial degree: 2
+number of routes: 1
+number of hosts connected to router: 2
+Neighbors: 7 
+Final gene sequence: RRRRRRRRRRRRRDRR
+
+ROUTER 6
+Position: ( 6.48651, 8.99404 )
+avg. xPos: 4.26155
+avg. yPos: 5.18381
+initial degree: 2
+number of routes: 4
+number of hosts connected to router: 3
+Neighbors: 0 
+Final gene sequence: RPPPRRRRRRRRRDRRRRRDRRRRDRQRRRRRQDRPRDRRRRRRRDRRRRD
+
+ROUTER 7
+Position: ( 0.392854, 9.27629 )
+avg. xPos: 4.26155
+avg. yPos: 5.18381
+initial degree: 2
+number of routes: 1
+number of hosts connected to router: 2
+Neighbors: 5 
+Final gene sequence: RRRRRRRRRRDRRRRR
+
+ROUTER 8
+Position: ( 8.93587, 2.84624 )
+avg. xPos: 4.26155
+avg. yPos: 5.18381
+initial degree: 1
+number of routes: 4
+number of hosts connected to router: 2
+Neighbors: 4 
+Final gene sequence: RPRRRRRRRRRRDRRRRRRRRRPDDRRDRRDRRRPRDQRRRRRRRRRD
+
+ROUTER 9
+Position: ( 4.65991, 2.61379 )
+avg. xPos: 4.26155
+avg. yPos: 5.18381
+initial degree: 4
+number of routes: 4
+number of hosts connected to router: 2
+Neighbors: 0 1 2 4 
+Final gene sequence: RRRPPQRDDRRPRRQRPRRDRRPRPRDRRRPRPRDRDRPDRQRPRPRDRPDRPQDRDRPRPDDRDPRPRPRDDRRRPRPRQRPDRD
+
