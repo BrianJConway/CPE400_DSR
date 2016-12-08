@@ -136,7 +136,7 @@ ostream& operator<<( ostream& out, const Router& src )
     double sum = 0;
     
     // Output sensor data
-    cout << "Position: ( " << src.xPos << ", " << src.yPos << " )" << endl
+    out << "Position: ( " << src.xPos << ", " << src.yPos << " )" << endl
          << "avg. xPos: " << src.avgXpos << endl
          << "avg. yPos: " << src.avgYpos << endl
          << "initial degree: " << src.degree << endl
@@ -144,23 +144,23 @@ ostream& operator<<( ostream& out, const Router& src )
          << "number of hosts connected to router: " << src.hosts.size() << endl;
          
        // Output which sensors are neighbors
-       cout << "Neighbors: ";
+       out << "Neighbors: ";
        for( index = 0; index < src.neighbors.size(); index++ )
           {
            if( src.neighbors[ index ] == true )
               {
-               cout << index << " ";
+               out << index << " ";
               }
           }
-       cout << endl;
+       out << endl;
        
        // Output final gene sequence
-       cout << "Final gene sequence: ";
+       out << "Final gene sequence: ";
        for( index = 0; index < src.geneSeq.size(); index++ )
           {
-           cout << src.geneSeq[ index ];
+           out << src.geneSeq[ index ];
           }
-       cout << endl;
+       out << endl;
          
     // Return ostream object
     return out;

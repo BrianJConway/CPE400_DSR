@@ -8,7 +8,7 @@
 using namespace std;
 
 const int NUM_ROUTERS = 10;
-const int NUM_ITERATIONS = 100;
+const int NUM_ITERATIONS = 300;
 
 int packetIDGenerator::count = 0;
 int addressGenerator::count = 0;
@@ -200,12 +200,13 @@ void outputToFile( vector<Router>& data )
     ofstream fout;
     
 	// Open "measurements.txt"
-	fout.open("measurements.csv");
+	fout.open("measurements.txt");
 
 	// Begin loading file with measurement data
 	for( index = 0; index < data.size(); index++ )
 		{
-		
+         fout << "ROUTER " << index << endl;
+		 fout << data[ index ] << endl;
 		}
 		
 	 fout.close();
