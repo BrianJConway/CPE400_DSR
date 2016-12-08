@@ -139,7 +139,9 @@ ostream& operator<<( ostream& out, const Router& src )
     cout << "Position: ( " << src.xPos << ", " << src.yPos << " )" << endl
          << "avg. xPos: " << src.avgXpos << endl
          << "avg. yPos: " << src.avgYpos << endl
-         << "degree: " << src.degree << endl; 
+         << "initial degree: " << src.degree << endl
+         << "number of routes: " << src.routes.size() << endl
+         << "number of hosts connected to router: " << src.hosts.size() << endl;
          
        // Output which sensors are neighbors
        cout << "Neighbors: ";
@@ -150,7 +152,14 @@ ostream& operator<<( ostream& out, const Router& src )
                cout << index << " ";
               }
           }
-          
+       cout << endl;
+       
+       // Output final gene sequence
+       cout << "Final gene sequence: ";
+       for( index = 0; index < src.geneSeq.size(); index++ )
+          {
+           cout << src.geneSeq[ index ];
+          }
        cout << endl;
          
     // Return ostream object
@@ -314,6 +323,7 @@ void Router::setNetwork( vector<Router>* n )
     network = n;
 
     // Generate hosts
+    hosts.clear();
     random_device rd;
     default_random_engine generator( rd() );
     uniform_int_distribution<int> dist1( 1, 3 );

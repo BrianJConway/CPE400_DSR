@@ -61,25 +61,35 @@ int main()
         // Loop through all routers
         for( routerIndex = 0; routerIndex < network.size(); routerIndex++ )
            {
-	    cout << "Current Gene Sequence: ";
-		for( int i = 0; i < network[routerIndex].geneSeq.size(); i++ )
-			{
-			cout << network[routerIndex].geneSeq[i];
-			}
-	    cout << endl;
-            cout << "ROUTER " << routerIndex;
+            cout << "ROUTER " << routerIndex << endl;
+            
+            // Output current router's gene sequence
+            
+               // Output label
+	           cout << "Current Gene Sequence: ";
+                
+               // Loop through gene sequence
+		       for( int i = 0; i < network[routerIndex].geneSeq.size(); i++ )
+		          {
+		           // Output current character in sequence
+		           cout << network[routerIndex].geneSeq[i];
+		          }
+	           cout << endl;
+	        
+	        // Step the simulation for the current router
             network[ routerIndex ].stepSimulation();
             cout << endl;
            }
         // end inner loop
-        
-        cout << endl << endl;
+      
+        cout << endl << endl << endl;
        }
     // end outer loop
     
 // TESTING: Output all router information 
 for( index = 0; index < network.size(); index++ )
    {
+    cout << "ROUTER " << index << endl;
     cout << network[ index ] << endl;
    }
 // TESTING: Output all router information 
@@ -197,7 +207,8 @@ void outputToFile( vector<Router>& data )
 		{
 		
 		}
-	fout.close();
+		
+	 fout.close();
 	}
 
   

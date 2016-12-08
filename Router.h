@@ -12,6 +12,7 @@ using namespace std;
 
 class Host;
 
+// Differentiates between data packets, router requests, and route replies
 enum packetType
    {
     PTYPE_REQUEST,
@@ -19,18 +20,25 @@ enum packetType
     PTYPE_DATA
    };
 
+// Min and max possible router locations
 const double MIN_XPOS = 0.0;
 const double MIN_YPOS = 0.0;
 const double MAX_XPOS = 10.0;
 const double MAX_YPOS = 10.0;
 
+// Range of the router
 const double COMMUNICATION_RANGE = 3.50;
 
-const int PACKET_RARITY = 1000;
+// Determines how likely a host is to generate a packet, higher is less likely
+const int PACKET_RARITY = 100;
 
+// Describes a route from one router address to another
 struct Route
    {
+    // Number of hops
     int length;
+    
+    // Addresses along the route
     vector<string> path;
     
     // Used for sorting routes by length
@@ -64,6 +72,7 @@ struct Packet
     Packet(int p, packetType t, string s, string d): packetID(p), type(t), srcAddress(s), destAddress(d) {}
    };
 
+// Generates unique router addresses
 class addressGenerator
    {
     public:
@@ -79,6 +88,7 @@ class addressGenerator
           }
    };
 
+// Generates unique packet ID numbers
 class packetIDGenerator
    {
     public:
@@ -111,37 +121,82 @@ class Router
        // Routing simulation funcions
        void stepSimulation();
        
-       // Data members
+       
+       
+       // Location
        double xPos, yPos;
        double avgXpos;
        double avgYpos;
+       
+       // Number of neighbors
        double degree;
        
+       // Router index
        int routerNum;
+       
+       // IP address
        string address;
+       
+       // Flags that indicate which routers are neighbors of current router
+       vector<bool> neighbors;
 
+       // Reputations of router's neighbors
        vector<int> reputations;       
+       
+       // Gene sequencce of router
        vector<char> geneSeq;
 
-       vector<bool> neighbors;
+       // Vector of packet ID's so we don't process the same route requests
        vector<int> seenPackets;
+       
+       // Packets that are put aside temporarily until a route is routed
        vector<Packet> waitingPackets;
+       
+       // Packets waiting to be processed
        queue<Packet> buffer;
+       
+       // Routes obtained by processing route requests and replies
        set<Route> routes;
        
     private:
+       // Process a single packet ( route request, route reply, data )
        void processPacket( Packet data );
+       
+       // Send packet to a specific neighbor based on their IP address
        void sendPacket( Packet data, string destAddress );
+       
+       // Receive a packet and determine if it should be added to your buffer
        void getPacket( Packet data );      
+       
+       // Extract all useful routes from the packet
        void processRoutes( Packet data );
+       
+       // Send packet to all neighbors
        void broadcastPacket( Packet data );
+       
+       // Check if router has a route to the router at the specified IP address
        bool hasRoute( string address );
+       
+       // Update reputations of all neighbors and eliminate faulty neighbors
        void checkReputations();
+       
+       // Get rid of all routes containing the router at the specified index
        void deleteRoutes( int routerIndex );
+       
+       
+       
+       
+       
+       // Get the shortest route to the router at the IP address
        vector<string> getRoute( string address );
+       
+       // All hosts connected to the router
        vector<Host> hosts;
        
+       // Pointer to the network as a whole
        vector<Router>* network;
+       
+       // Generators for IP addresses and packet ID's
        addressGenerator ipGen;
        packetIDGenerator pidGen;
    };
